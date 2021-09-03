@@ -26,7 +26,11 @@ void task_led(void *pkey);
 void keys_service_task( void* pkey );
 
 
-/*==================[declaraciones de funciones externas]====================*/
+/*==================[declaraciones de variables externas]====================*/
+extern dbn_t *pkey_n1;
+extern dbn_t *pkey_n2;
+extern dbn_t *pkey_n3;
+extern dbn_t *pkey_n4;
 
 /*=====[Main function, program entry point after power on or reset]==========*/
 
@@ -42,25 +46,25 @@ int main(void)
 
    // Se agrega la tarea tarea pkey1 al planificador
    schedulerAddTask(keys_service_task, // Function that implements the task update.
-                    pkey1,             // Parameter passed into the task update.
+                    pkey_n1,             // Parameter passed into the task update.
                     0,                 // Execution offset in ticks.
                     DEBOUNCE_TIME      // Periodicity of task execution in ticks.
    );
    // Se agrega la tarea tarea pkey2 al planificador
    schedulerAddTask(keys_service_task, // Function that implements the task update.
-                    pkey2,             // Parameter passed into the task update.
+                    pkey_n2,             // Parameter passed into the task update.
                     0,                 // Execution offset in ticks.
                     DEBOUNCE_TIME      // Periodicity of task execution in ticks.
    );
    // Se agrega la tarea tarea pkey3 al planificador
    schedulerAddTask(keys_service_task, // Function that implements the task update.
-                    pkey3,             // Parameter passed into the task update.
+                    pkey_n3,             // Parameter passed into the task update.
                     0,                 // Execution offset in ticks.
                     DEBOUNCE_TIME      // Periodicity of task execution in ticks.
    );
    // Se agrega la tarea tarea pkey4 al planificador
    schedulerAddTask(keys_service_task, // Function that implements the task update.
-                    pkey4,             // Parameter passed into the task update.
+                    pkey_n4,             // Parameter passed into the task update.
                     0,                 // Execution offset in ticks.
                     DEBOUNCE_TIME      // Periodicity of task execution in ticks.
    );
@@ -88,30 +92,32 @@ int main(void)
  */
 void task_led(void *pkey) //Funcion que según el estado del LED hace algo
 {
-   if (pkey->led_state == LED_OFF)
+   dbn_t* pkey_ = (dbn_t*) pkey;
+
+   if (pkey_->led_state == LED_OFF)
    {
       /* toggle del led */
-      gpioToggle(pkey->led_name);
+      gpioToggle(pkey_->led_name);
 
       /* cambio de estado al led */
-      pkey->led_state = LED_ON;
+      pkey_->led_state = LED_ON;
 
       /* planifico el apagado del led con un offset=tiempo que estuvo pulsado el botón*/
       schedulerAddTask(task_led,            // funcion de tarea a agregar
                        0,                   // parametro de la tarea
-                       pkey->key_time_diff, // offset de ejecucion en ticks
+                       pkey_->key_time_diff, // offset de ejecucion en ticks
                        0                    // periodicidad de ejecucion en ticks
       );
    }
-   else if (pkey->led_state == LED_ON)
+   else if (pkey_->led_state == LED_ON)
    {
       /* toggle del led */
-      gpioToggle(pkey->led_name);
+      gpioToggle(pkey_->led_name);
 
       /* cambio de estado al led */
-      pkey->led_state = LED_OFF;
+      pkey_->led_state = LED_OFF;
 
-      pkey->key_time_diff = KEY_INVALID_TIME;
+      pkey_->key_time_diff = KEY_INVALID_TIME;
    }
 }
 
@@ -123,16 +129,17 @@ void task_led(void *pkey) //Funcion que según el estado del LED hace algo
 void keys_service_task(void *pkey)
 {
    keys_update(pkey); //Actualiza el estado de la FSM
-
-   if (pkey->key_event == EVENT_KEY_DOWN)
+   dbn_t* pkey_ = (dbn_t*) pkey;
+   
+   if (pkey_->key_event == EVENT_KEY_DOWN)
    {
       /* no hago nada */
    }
-   else if (pkey->key_event == EVENT_KEY_UP) //Al soltarse el botón se agrega tarea task_led // @suppress("Field cannot be resolved")
+   else if (pkey_->key_event == EVENT_KEY_UP) //Al soltarse el botón se agrega tarea task_led // @suppress("Field cannot be resolved")
    {
       /* planifico que la tarea de LED se ejecute en 0 ticks */
       schedulerAddTask(task_led, // funcion de tarea a agregar
-                       pkey,     // parametro de la tarea
+                       pkey_,     // parametro de la tarea
                        0,        // offset -> 0 = "ejecutate inmediatamente"
                        0         // periodicidad de ejecucion en ticks
       );
