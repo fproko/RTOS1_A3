@@ -103,10 +103,10 @@ void task_led(void *pkey) //Funcion que según el estado del LED hace algo
       pkey_->led_state = LED_ON;
 
       /* planifico el apagado del led con un offset=tiempo que estuvo pulsado el botón*/
-      schedulerAddTask(task_led,            // funcion de tarea a agregar
-                       0,                   // parametro de la tarea
+      schedulerAddTask(task_led,             // funcion de tarea a agregar
+                       pkey_,                // parametro de la tarea
                        pkey_->key_time_diff, // offset de ejecucion en ticks
-                       0                    // periodicidad de ejecucion en ticks
+                       0                     // periodicidad de ejecucion en ticks
       );
    }
    else if (pkey_->led_state == LED_ON)
@@ -137,6 +137,7 @@ void keys_service_task(void *pkey)
    }
    else if (pkey_->key_event == EVENT_KEY_UP) //Al soltarse el botón se agrega tarea task_led // @suppress("Field cannot be resolved")
    {
+      pkey_->key_event = EVENT_KEY_NONE;
       /* planifico que la tarea de LED se ejecute en 0 ticks */
       schedulerAddTask(task_led, // funcion de tarea a agregar
                        pkey_,     // parametro de la tarea
