@@ -17,20 +17,10 @@
 
 /*=====[Definitions of external public global variables]=====================*/
 
-//dbn_t key_n1,key_n2,key_n3,key_n4;
-
-dbn_t key_n1 = {TEC1, STATE_KEY_UP, EVENT_KEY_NONE, KEY_INVALID_TIME, KEY_INVALID_TIME, KEY_INVALID_TIME, LEDB, LED_OFF};
-dbn_t key_n2 = {TEC2, STATE_KEY_UP, EVENT_KEY_NONE, KEY_INVALID_TIME, KEY_INVALID_TIME, KEY_INVALID_TIME, LED1, LED_OFF};
-dbn_t key_n3 = {TEC3, STATE_KEY_UP, EVENT_KEY_NONE, KEY_INVALID_TIME, KEY_INVALID_TIME, KEY_INVALID_TIME, LED2, LED_OFF};
-dbn_t key_n4 = {TEC4, STATE_KEY_UP, EVENT_KEY_NONE, KEY_INVALID_TIME, KEY_INVALID_TIME, KEY_INVALID_TIME, LED3, LED_OFF};
-
-// Punteros de teclas
-dbn_t *pkey_n1 = &key_n1;
-dbn_t *pkey_n2 = &key_n2;
-dbn_t *pkey_n3 = &key_n3;
-dbn_t *pkey_n4 = &key_n4;
-
 /*=====[Definitions of public global variables]==============================*/
+
+dbn_t keys_struct[MAX_KEYS]; //Array de estructuras de teclas
+dbn_t *pkey;                 //Puntero a estructuras de teclas
 
 /*=====[Definitions of private global variables]=============================*/
 
@@ -39,24 +29,29 @@ dbn_t *pkey_n4 = &key_n4;
 /*=====[Implementations of public functions]=================================*/
 
 /**
-   @brief Inicializa el driver
-
+ * @brief Inicializa el driver
+ * 
  */
 void keys_init(void)
 {
-   //Inicializacion de estructuras de teclas
-   // key_n1.key_name = TEC1;
-   // key_n1.key_state = STATE_KEY_UP;
-   // key_n1.key_event = EVENT_KEY_NONE;
-   // key_n1.key_time_down = KEY_INVALID_TIME;
-   // key_n1.key_time_up = KEY_INVALID_TIME;
-   // key_n1.key_time_diff = KEY_INVALID_TIME;
-   // key_n1.led_name = LEDB;
-   // key_n1.led_state = LED_OFF;
+   gpioMap_t keys_names[]={TEC1,TEC2,TEC3,TEC4};
+   gpioMap_t leds_names[]={LEDB,LED1,LED2,LED3};
+   int32_t i = 0;
 
+   for(i=0;i<MAX_KEYS;i++)
+   {
+      keys_struct[i].key_name = keys_names[i];
+      keys_struct[i].key_state = STATE_KEY_UP;
+      keys_struct[i].key_event = EVENT_KEY_NONE;
+      keys_struct[i].key_time_down = KEY_INVALID_TIME;
+      keys_struct[i].key_time_up = KEY_INVALID_TIME;
+      keys_struct[i].key_time_diff = KEY_INVALID_TIME;
+      keys_struct[i].led_name = leds_names[i];
+      keys_struct[i].led_state = LED_OFF;
+   }
 }
 
-// keys_ Update State Function
+// keys_update State Function
 /**
  * @brief Keys SM for polled operation
  * 

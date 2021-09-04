@@ -22,15 +22,14 @@
 #include "../../../RTOS1/A3/inc/keys.h"
 
 /*==================[declaraciones de funciones internas]====================*/
-void task_led(void *pkey);
-void keys_service_task( void* pkey );
 
+void task_led(void *pkey);
+void keys_service_task(void *pkey);
 
 /*==================[declaraciones de variables externas]====================*/
-extern dbn_t *pkey_n1;
-extern dbn_t *pkey_n2;
-extern dbn_t *pkey_n3;
-extern dbn_t *pkey_n4;
+
+extern dbn_t keys_struct[MAX_KEYS]; //Array de estructuras de teclas
+extern dbn_t *pkey;                 //Puntero a estructuras de teclas
 
 /*=====[Main function, program entry point after power on or reset]==========*/
 
@@ -44,30 +43,12 @@ int main(void)
    // Initialize scheduler
    schedulerInit();
 
-   // Se agrega la tarea tarea pkey1 al planificador
+   // Se agrega la tarea keys_service_task al planificador
    schedulerAddTask(keys_service_task, // Function that implements the task update.
-                    pkey_n1,             // Parameter passed into the task update.
+                    0,                 // Parameter passed into the task update.
                     0,                 // Execution offset in ticks.
                     DEBOUNCE_TIME      // Periodicity of task execution in ticks.
-   );
-   // Se agrega la tarea tarea pkey2 al planificador
-   schedulerAddTask(keys_service_task, // Function that implements the task update.
-                    pkey_n2,             // Parameter passed into the task update.
-                    0,                 // Execution offset in ticks.
-                    DEBOUNCE_TIME      // Periodicity of task execution in ticks.
-   );
-   // Se agrega la tarea tarea pkey3 al planificador
-   schedulerAddTask(keys_service_task, // Function that implements the task update.
-                    pkey_n3,             // Parameter passed into the task update.
-                    0,                 // Execution offset in ticks.
-                    DEBOUNCE_TIME      // Periodicity of task execution in ticks.
-   );
-   // Se agrega la tarea tarea pkey4 al planificador
-   schedulerAddTask(keys_service_task, // Function that implements the task update.
-                    pkey_n4,             // Parameter passed into the task update.
-                    0,                 // Execution offset in ticks.
-                    DEBOUNCE_TIME      // Periodicity of task execution in ticks.
-   );
+                  );
 
    // Initialize task scheduler each 1ms.
    schedulerStart(1);
@@ -122,28 +103,29 @@ void task_led(void *pkey) //Funcion que según el estado del LED hace algo
 }
 
 /**
-   @brief Funcion que se ejecuta cada DEBOUNCE_TIME ticks.
-
-   @param pkey
+ * @brief Funcion que se ejecuta cada DEBOUNCE_TIME ticks.
+ * 
+ * @param param 
  */
-void keys_service_task(void *pkey)
-{
-   keys_update(pkey); //Actualiza el estado de la FSM
-   dbn_t* pkey_ = (dbn_t*) pkey;
-   
-   if (pkey_->key_event == EVENT_KEY_DOWN)
+void keys_service_task(void *param)
+{  
+   for (pkey = keys_struct; pkey < keys_struct + MAX_KEYS; pkey++) //Recorre el array de estructuras de teclas
    {
-      /* no hago nada */
-   }
-   else if (pkey_->key_event == EVENT_KEY_UP) //Al soltarse el botón se agrega tarea task_led // @suppress("Field cannot be resolved")
-   {
-      pkey_->key_event = EVENT_KEY_NONE;
-      /* planifico que la tarea de LED se ejecute en 0 ticks */
-      schedulerAddTask(task_led, // funcion de tarea a agregar
-                       pkey_,     // parametro de la tarea
-                       0,        // offset -> 0 = "ejecutate inmediatamente"
-                       0         // periodicidad de ejecucion en ticks
-      );
+      keys_update(pkey); //Actualiza el estado de la FSM
+      if (pkey->key_event == EVENT_KEY_DOWN)
+      {
+         /* no hago nada */
+      }
+      else if (pkey->key_event == EVENT_KEY_UP) //Al soltarse el botón se agrega tarea task_led // @suppress("Field cannot be resolved")
+      {
+         pkey->key_event = EVENT_KEY_NONE;
+         /* planifico que la tarea de LED se ejecute en 0 ticks */
+         schedulerAddTask(task_led, // funcion de tarea a agregar
+                          pkey,     // parametro de la tarea
+                          0,        // offset -> 0 = "ejecutate inmediatamente"
+                          0         // periodicidad de ejecucion en ticks
+         );
+      }
    }
 }
 /*==================[definiciones de funciones externas]=====================*/

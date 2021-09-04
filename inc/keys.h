@@ -21,6 +21,7 @@ extern "C" {
 /*=====[Definition macros of public constants]===============================*/
 #define KEY_INVALID_TIME   -1
 #define DEBOUNCE_TIME       40
+#define MAX_KEYS 4
 
 /*=====[Public function-like macros]=========================================*/
 
